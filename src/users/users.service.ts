@@ -2,6 +2,10 @@ import { User } from "./users.model";
 import { InjectModel } from "@nestjs/sequelize";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { RolesService } from "../roles/roles.service";
+import { AddRoleDto } from "../roles/dto/add-role.dto";
+import { BanUserDto } from "../roles/dto/ban-user.dto";
+import { HttpException, HttpStatus } from "@nestjs/common";
+import { retry } from "rxjs";
 
 export class UsersService {
   constructor(@InjectModel(User) private userRepository: typeof User, private roleService: RolesService) {
@@ -23,5 +27,26 @@ export class UsersService {
   async getUserByEmail(email: string) {
     const user = await this.userRepository.findOne({ where: { email }, include: { all: true } });
     return user;
+  }
+
+  async addRole(dto: AddRoleDto) {
+    const user = await this.userRepository.findByPk(dto.userId);
+    const role = await this.roleService.getRoleByValue(dto.value);
+    if (user && role) {
+      await user.$set("roles", role.id);
+      return dto;
+    }
+    throw new HttpException("user or role not found", HttpStatus.NOT_FOUND);
+  }
+
+  async banUser(dto: BanUserDto) {
+    const user = await this.userRepository.findByPk(dto.userId);
+    if (user) {
+      user.banned = true;
+      user.banReason = dto.banReason;
+      await user.save();
+      return user;
+    }
+    throw new HttpException("user not found", HttpStatus.NOT_FOUND);
   }
 }
