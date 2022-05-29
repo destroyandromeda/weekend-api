@@ -2,10 +2,9 @@ import { User } from "./users.model";
 import { InjectModel } from "@nestjs/sequelize";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { RolesService } from "../roles/roles.service";
-import { AddRoleDto } from "../roles/dto/add-role.dto";
-import { BanUserDto } from "../roles/dto/ban-user.dto";
+import { AddRoleDto } from "./dto/add-role.dto";
+import { BanUserDto } from "./dto/ban-user.dto";
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { retry } from "rxjs";
 
 export class UsersService {
   constructor(@InjectModel(User) private userRepository: typeof User, private roleService: RolesService) {
